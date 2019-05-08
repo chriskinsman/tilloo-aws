@@ -13,7 +13,8 @@ You will need to:
 3. Set AWS_PROFILE to the AWS cli profile to use
 4. Change region and profile in terraform/main.tf
 5. Modify the last line of 3.load-balancer.sh to include the domain for which external-dns should create route53 entries.
-6. Modify tilloo.yaml to include the FQDN you want tilloo deployed at
+6. Modify tilloo.yaml to include the FQDN you want tilloo deployed at and the path to your ECR repository
+
 
 Steps are intended to be run in numerical order.
 
