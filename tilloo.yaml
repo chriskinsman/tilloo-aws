@@ -109,7 +109,7 @@ spec:
       serviceAccountName: tilloo-admin
       containers:
       - name: scheduler
-        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:4
+        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:5
         env:
         - name: DEBUG
           value: tilloo:*
@@ -153,7 +153,7 @@ spec:
       serviceAccountName: tilloo-admin
       containers:
       - name: web
-        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:4
+        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:5
         env:
         - name: DEBUG
           value: tilloo:*
@@ -184,7 +184,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: logger
-        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:4
+        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:5
         env:
         - name: DEBUG
           value: tilloo:*
