@@ -1,10 +1,9 @@
 provider "aws" {
   region  = "us-west-2"
-  profile = "personalaws"
 }
 
 resource "aws_vpc" "tilloo" {
-  cidr_block           = "${var.tilloo_cidr_block}"
+  cidr_block           = "${local.tilloo_cidr_block}"
   enable_dns_hostnames = true
 
   tags = {
@@ -34,7 +33,7 @@ resource "aws_security_group_rule" "vpc" {
   protocol  = "all"
 
   # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
-  cidr_blocks = ["${var.tilloo_cidr_block}"]
+  cidr_blocks = ["${local.tilloo_cidr_block}"]
 
   security_group_id = "${aws_vpc.tilloo.default_security_group_id}"
 }
@@ -43,13 +42,13 @@ resource "aws_security_group_rule" "vpc" {
 
 resource "aws_subnet" "subnet_a" {
   availability_zone = "us-west-2a"
-  cidr_block        = "${var.tilloo_cidr_prefix}.0.0/18"
+  cidr_block        = "${local.tilloo_cidr_prefix}.0.0/18"
   vpc_id            = "${aws_vpc.tilloo.id}"
 
   tags = "${
     map(
-     "Name", "terraform-eks-${var.cluster_name}-node",
-     "kubernetes.io/cluster/${var.cluster_name}", "shared",
+     "Name", "terraform-eks-${local.cluster_name}-node",
+     "kubernetes.io/cluster/${local.cluster_name}", "shared",
      "kubernetes.io/role/alb-ingress", "",
      "kubernetes.io/role/elb", "",
      "kubernetes.io/role/internal-elb", ""
@@ -64,13 +63,13 @@ resource "aws_route_table_association" "route_a" {
 
 resource "aws_subnet" "subnet_b" {
   availability_zone = "us-west-2b"
-  cidr_block        = "${var.tilloo_cidr_prefix}.64.0/18"
+  cidr_block        = "${local.tilloo_cidr_prefix}.64.0/18"
   vpc_id            = "${aws_vpc.tilloo.id}"
 
   tags = "${
     map(
-     "Name", "terraform-eks-${var.cluster_name}-node",
-     "kubernetes.io/cluster/${var.cluster_name}", "shared",
+     "Name", "terraform-eks-${local.cluster_name}-node",
+     "kubernetes.io/cluster/${local.cluster_name}", "shared",
      "kubernetes.io/role/alb-ingress", "",
      "kubernetes.io/role/elb", "",
      "kubernetes.io/role/internal-elb", ""
@@ -85,13 +84,13 @@ resource "aws_route_table_association" "route_b" {
 
 resource "aws_subnet" "subnet_c" {
   availability_zone = "us-west-2c"
-  cidr_block        = "${var.tilloo_cidr_prefix}.128.0/18"
+  cidr_block        = "${local.tilloo_cidr_prefix}.128.0/18"
   vpc_id            = "${aws_vpc.tilloo.id}"
 
   tags = "${
     map(
-     "Name", "terraform-eks-${var.cluster_name}-node",
-     "kubernetes.io/cluster/${var.cluster_name}", "shared",
+     "Name", "terraform-eks-${local.cluster_name}-node",
+     "kubernetes.io/cluster/${local.cluster_name}", "shared",
      "kubernetes.io/role/alb-ingress", "",
      "kubernetes.io/role/elb", "",
      "kubernetes.io/role/internal-elb", ""
@@ -106,13 +105,13 @@ resource "aws_route_table_association" "route_c" {
 
 resource "aws_subnet" "subnet_d" {
   availability_zone = "us-west-2d"
-  cidr_block        = "${var.tilloo_cidr_prefix}.192.0/18"
+  cidr_block        = "${local.tilloo_cidr_prefix}.192.0/18"
   vpc_id            = "${aws_vpc.tilloo.id}"
 
   tags = "${
     map(
-     "Name", "terraform-eks-${var.cluster_name}-node",
-     "kubernetes.io/cluster/${var.cluster_name}", "shared",
+     "Name", "terraform-eks-${local.cluster_name}-node",
+     "kubernetes.io/cluster/${local.cluster_name}", "shared",
      "kubernetes.io/role/alb-ingress", "",
      "kubernetes.io/role/elb", "",
      "kubernetes.io/role/internal-elb", ""
@@ -126,7 +125,7 @@ resource "aws_route_table_association" "route_d" {
 }
 
 resource "aws_iam_policy" "ingress-policy" {
-  name        = "${var.cluster_name}-ingress-iam-policy"
+  name        = "${local.cluster_name}-ingress-iam-policy"
   path        = "/"
   description = "Ingress policy for ALB"
 
@@ -253,7 +252,7 @@ POLICY
 }
 
 resource "aws_iam_policy" "route53-policy" {
-  name        = "${var.cluster_name}-route53-iam-policy"
+  name        = "${local.cluster_name}-route53-iam-policy"
   path        = "/"
   description = "Ingress policy for ALB"
 
@@ -290,7 +289,7 @@ POLICY
 #
 
 resource "aws_iam_role" "control-plane-roles" {
-  name = "${var.cluster_name}-cluster-control-plane"
+  name = "${local.cluster_name}-cluster-control-plane"
 
   assume_role_policy = <<POLICY
 {
@@ -322,7 +321,7 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
 # EKS Master Cluster Security Group
 #
 resource "aws_security_group" "control-plane-securitygroup" {
-  name        = "${var.cluster_name}-cluster"
+  name        = "${local.cluster_name}-cluster"
   description = "Cluster communication with worker nodes"
   vpc_id      = "${aws_vpc.tilloo.id}"
 
@@ -333,8 +332,8 @@ resource "aws_security_group" "control-plane-securitygroup" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
-    Name = "terraform-eks-${var.cluster_name}"
+  tags = {
+    Name = "terraform-eks-${local.cluster_name}"
   }
 }
 
@@ -356,7 +355,8 @@ resource "aws_security_group_rule" "ingress-workstation-https" {
 #
 
 resource "aws_eks_cluster" "cluster" {
-  name     = "${var.cluster_name}"
+  name     = "${local.cluster_name}"
+  version  = "${local.k8s_version}"
   role_arn = "${aws_iam_role.control-plane-roles.arn}"
 
   vpc_config {
@@ -381,7 +381,7 @@ resource "aws_eks_cluster" "cluster" {
 #
 
 resource "aws_iam_role" "node-roles" {
-  name = "${var.cluster_name}-cluster-nodes"
+  name = "${local.cluster_name}-cluster-nodes"
 
   assume_role_policy = <<POLICY
 {
@@ -425,7 +425,7 @@ resource "aws_iam_role_policy_attachment" "Route53IngressPolicy" {
 }
 
 resource "aws_iam_instance_profile" "instance-profile" {
-  name = "${var.cluster_name}-instance-profile"
+  name = "${local.cluster_name}-instance-profile"
   role = "${aws_iam_role.node-roles.name}"
 }
 
@@ -434,7 +434,7 @@ resource "aws_iam_instance_profile" "instance-profile" {
 #
 
 resource "aws_security_group" "node-securitygroup" {
-  name        = "${var.cluster_name}-node"
+  name        = "${local.cluster_name}-node"
   description = "Security group for all nodes in the cluster"
   vpc_id      = "${aws_vpc.tilloo.id}"
 
@@ -447,8 +447,8 @@ resource "aws_security_group" "node-securitygroup" {
 
   tags = "${
     map(
-     "Name", "${var.cluster_name}-node",
-     "kubernetes.io/cluster/${var.cluster_name}", "owned",
+     "Name", "${local.cluster_name}-node",
+     "kubernetes.io/cluster/${local.cluster_name}", "owned",
     )
   }"
 }
@@ -490,7 +490,7 @@ resource "aws_security_group_rule" "ingress-node-https" {
 data "aws_ami" "eks-worker" {
   filter {
     name   = "name"
-    values = ["amazon-eks-node-v??"]
+    values = ["amazon-eks-node-${local.k8s_version}-v*"]
   }
 
   most_recent = true
@@ -510,7 +510,7 @@ locals {
   node-userdata = <<USERDATA
 #!/bin/bash
 set -o xtrace
-/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.cluster.endpoint}' --b64-cluster-ca '${aws_eks_cluster.cluster.certificate_authority.0.data}' --kubelet-extra-args '--node-labels=nodegroup=worker' '${var.cluster_name}'
+/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.cluster.endpoint}' --b64-cluster-ca '${aws_eks_cluster.cluster.certificate_authority.0.data}' --kubelet-extra-args '--node-labels=nodegroup=worker' '${local.cluster_name}'
 USERDATA
 }
 
@@ -518,8 +518,8 @@ resource "aws_launch_configuration" "node" {
   associate_public_ip_address = true
   iam_instance_profile        = "${aws_iam_instance_profile.instance-profile.name}"
   image_id                    = "${data.aws_ami.eks-worker.id}"
-  instance_type               = "${var.worker_instance_type}"
-  name_prefix                 = "eks-${var.cluster_name}"
+  instance_type               = "${local.worker_instance_type}"
+  name_prefix                 = "eks-${local.cluster_name}"
   security_groups             = ["${aws_security_group.node-securitygroup.id}", "${aws_vpc.tilloo.default_security_group_id}"]
   user_data_base64            = "${base64encode(local.node-userdata)}"
   key_name                    = "Default"
@@ -535,11 +535,11 @@ resource "aws_launch_configuration" "node" {
 }
 
 resource "aws_autoscaling_group" "asg" {
-  desired_capacity     = "${var.worker_desired_capacity}"
+  desired_capacity     = "${local.worker_desired_capacity}"
   launch_configuration = "${aws_launch_configuration.node.id}"
-  max_size             = "${var.worker_max_size}"
-  min_size             = "${var.worker_min_size}"
-  name                 = "eks-${var.cluster_name}"
+  max_size             = "${local.worker_max_size}"
+  min_size             = "${local.worker_min_size}"
+  name                 = "eks-${local.cluster_name}"
 
   vpc_zone_identifier = [
     "${aws_subnet.subnet_a.id}",
@@ -550,12 +550,12 @@ resource "aws_autoscaling_group" "asg" {
 
   tag {
     key                 = "Name"
-    value               = "eks-${var.cluster_name}"
+    value               = "eks-${local.cluster_name}"
     propagate_at_launch = true
   }
 
   tag {
-    key                 = "kubernetes.io/cluster/${var.cluster_name}"
+    key                 = "kubernetes.io/cluster/${local.cluster_name}"
     value               = "owned"
     propagate_at_launch = true
   }
