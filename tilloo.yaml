@@ -109,7 +109,7 @@ spec:
       serviceAccountName: tilloo-admin
       containers:
       - name: scheduler
-        image: tilloo/k8s:latest-amd64
+        image: tilloo/k8s:139-amd64
         env:
         # - name: DEBUG
         #   value: tilloo:*
@@ -155,7 +155,7 @@ spec:
       serviceAccountName: tilloo-admin
       containers:
       - name: web
-        image: tilloo/k8s:latest-amd64
+        image: tilloo/k8s:139-amd64
         env:
         # - name: DEBUG
         #   value: tilloo:*
@@ -188,7 +188,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: logger
-        image: tilloo/k8s:latest-amd64
+        image: tilloo/k8s:139-amd64
         env:
         # - name: DEBUG
         #   value: tilloo:*
