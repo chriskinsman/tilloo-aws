@@ -109,10 +109,12 @@ spec:
       serviceAccountName: tilloo-admin
       containers:
       - name: scheduler
-        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:5
+        image: tilloo/k8s:latest-amd64
         env:
-        - name: DEBUG
-          value: tilloo:*
+        # - name: DEBUG
+        #   value: tilloo:*
+        - name: MONGODB
+          value: mongodb://root:pAssw0rd1@mongodb.tilloo-services.svc.cluster.local:27017/tilloo?authSource=admin
         command: ['/tilloo/bin/scheduler.js']
         ports:
         - containerPort: 80
@@ -153,10 +155,12 @@ spec:
       serviceAccountName: tilloo-admin
       containers:
       - name: web
-        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:5
+        image: tilloo/k8s:latest-amd64
         env:
-        - name: DEBUG
-          value: tilloo:*
+        # - name: DEBUG
+        #   value: tilloo:*
+        - name: MONGODB
+          value: mongodb://root:pAssw0rd1@mongodb.tilloo-services.svc.cluster.local:27017/tilloo?authSource=admin
         command: ['/tilloo/app/app.js']
         ports:
         - containerPort: 80
@@ -184,10 +188,12 @@ spec:
         effect: NoSchedule
       containers:
       - name: logger
-        image: <aws_id>.dkr.ecr.<aws_region>.amazonaws.com/tilloo:5
+        image: tilloo/k8s:latest-amd64
         env:
-        - name: DEBUG
-          value: tilloo:*
+        # - name: DEBUG
+        #   value: tilloo:*
+        - name: MONGODB
+          value: mongodb://root:pAssw0rd1@mongodb.tilloo-services.svc.cluster.local:27017/tilloo?authSource=admin
         command: ['/tilloo/bin/k8slogger.js']
         volumeMounts:
         - name: varlog
