@@ -505,12 +505,13 @@ data "aws_ami" "eks-worker" {
 # properly configure Kubernetes applications on the EC2 instance.
 # We utilize a Terraform local here to simplify Base64 encoding this
 # information into the AutoScaling Launch Configuration.
+# We set the DNS to a node-local-dns instance to avoid conntrack issue with cross node DNS resolution
 # More information: https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
 locals {
   node-userdata = <<USERDATA
 #!/bin/bash
 set -o xtrace
-/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.cluster.endpoint}' --b64-cluster-ca '${aws_eks_cluster.cluster.certificate_authority.0.data}' --kubelet-extra-args '--node-labels=nodegroup=worker' '${local.cluster_name}'
+/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.cluster.endpoint}' --b64-cluster-ca '${aws_eks_cluster.cluster.certificate_authority.0.data}' --kubelet-extra-args '--node-labels=nodegroup=worker --cluster-dns=169.254.20.10' '${local.cluster_name}'
 USERDATA
 }
 

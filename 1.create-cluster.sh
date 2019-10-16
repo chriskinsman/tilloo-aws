@@ -3,4 +3,5 @@ terraform init
 terraform apply
 popd
 aws eks update-kubeconfig --name tilloo --profile $AWS_PROFILE
-kubectl apply -f config_aws_auth.yaml
+kubectl get nodes
+echo "If a list of nodes didn't appear fix kubectl connectivity in ~/.kube/config before proceeding"
