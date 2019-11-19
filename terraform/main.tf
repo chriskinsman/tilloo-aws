@@ -1,5 +1,6 @@
 provider "aws" {
   region  = "us-west-2"
+  profile = "personal"
 }
 
 resource "aws_vpc" "tilloo" {
